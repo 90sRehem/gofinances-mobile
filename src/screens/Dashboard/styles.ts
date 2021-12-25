@@ -3,7 +3,6 @@ import { RFPercentage, RFValue } from 'react-native-responsive-fontsize';
 import { Feather } from '@expo/vector-icons'
 import { getBottomSpace, getStatusBarHeight } from 'react-native-iphone-x-helper'
 import { FlatList, FlatListProps } from 'react-native'
-import { BorderlessButton } from 'react-native-gesture-handler'
 
 import { DataListProps } from '.'
 
@@ -93,4 +92,4 @@ export const TransactionList = styled(
     }
 })``;
 
-export const LogoutButton = styled(BorderlessButton)``
+export const LogoutButton = styled.TouchableOpacity``

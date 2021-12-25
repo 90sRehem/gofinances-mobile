@@ -1,6 +1,5 @@
 import React from "react";
-import { HighLightCard } from "../../components/HighlightCard";
-import { Transaction, TransactionCard } from "../../components/TransactionCard";
+import { Transaction, TransactionCard, HighLightCard } from "./components";
 import {
     Container,
     Header,
