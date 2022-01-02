@@ -3,16 +3,26 @@ import { Alert, Keyboard, Modal, TouchableWithoutFeedback } from 'react-native'
 import { useForm } from 'react-hook-form'
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup'
-import AsyncStorage from "@react-native-async-storage/async-storage"
 
 import { Button, InputForm } from "../../components";
 import { CategorySelect } from "../CategorySelect";
 import { Container, Header, Title, Form, Fields, TrasactionTypes } from "./styles";
 import { TransactionTypeButton, CattegorySelectButton } from "./components";
-
+import 'react-native-get-random-values'
+import { nanoid } from 'nanoid'
+import { useNavigation } from "@react-navigation/native";
+import { storage } from "../../utils/storage";
+import { TRANSACTIONS_STORAGE_KEY } from "../../config";
+import { Transaction, Category } from '../Register/types'
 interface FormData {
     name: string;
     amount: string
+}
+
+type TransactionType = 'income' | 'outcome' | ''
+
+interface NewTransaction extends Transaction {
+    id: string;
 }
 
 const schema = yup.object().shape({
@@ -25,9 +35,10 @@ const schema = yup.object().shape({
 })
 
 export function Register() {
-    const [transactionType, setTransactionType] = useState('')
+    const navigation = useNavigation()
+    const [transactionType, setTransactionType] = useState<TransactionType>('')
     const [categoryModalOpen, setCategoryModalOpen] = useState(false)
-    const [category, setCategory] = useState({
+    const [category, setCategory] = useState<Category>({
         key: 'category',
         name: 'Categoria',
     })
@@ -35,7 +46,8 @@ export function Register() {
     const {
         control,
         handleSubmit,
-        formState
+        formState,
+        reset,
     } = useForm({
         resolver: yupResolver(schema)
     })
@@ -43,7 +55,6 @@ export function Register() {
     const handleSelectTransactionType = (type: 'income' | 'outcome') => {
         setTransactionType(type)
     }
-    const collectionKey = "@gofinances:transaction";
     const handleRegister = async (form: FormData) => {
         if (!transactionType) {
             return Alert.alert("Selecione o tipo da transação.")
@@ -52,24 +63,27 @@ export function Register() {
             return Alert.alert('Selecione a categoria.')
         }
 
-        const newTransaction = {
-            name: form.name,
+
+
+        const newTransaction: NewTransaction = {
+            id: nanoid(),
+            title: form.name,
             amount: form.amount,
-            transactionType,
-            category: category.key
+            type: transactionType,
+            category: category.key,
+            date: new Date()
         }
 
         try {
-            const data = await AsyncStorage.getItem(collectionKey)
+            await storage.setItem({ key: TRANSACTIONS_STORAGE_KEY, values: newTransaction })
 
-            const previousTransactions = data ? JSON.parse(data) : []
-
-            const formattedData = [
-                ...previousTransactions,
-                newTransaction
-            ]
-
-            await AsyncStorage.setItem(collectionKey, JSON.stringify(formattedData))
+            setTransactionType('')
+            setCategory({
+                key: 'category',
+                name: 'Categoria',
+            })
+            reset()
+            navigation.navigate('Listagem')
         } catch (error) {
             console.log(error);
             Alert.alert("Não foi possível salvar.")
@@ -79,9 +93,10 @@ export function Register() {
 
     useEffect(() => {
         (async () => {
-            // await AsyncStorage.removeItem(collectionKey)
-            const data = await AsyncStorage.getItem(collectionKey)
-            const result = JSON.parse(data!)
+            const result = await storage.getItem({ key: TRANSACTIONS_STORAGE_KEY })
+            // await storage.removeItem({ key: TRANSACTIONS_STORAGE_KEY })
+            // const data = await AsyncStorage.getItem(collectionKey)
+            // const result = JSON.parse(data!)
             console.log(result)
         })()
     }, []);
