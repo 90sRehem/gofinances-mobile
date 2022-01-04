@@ -63,15 +63,17 @@ export function Register() {
             return Alert.alert('Selecione a categoria.')
         }
 
-
-
         const newTransaction: NewTransaction = {
             id: nanoid(),
             title: form.name,
             amount: form.amount,
             type: transactionType,
             category: category.key,
-            date: new Date()
+            date: Intl.DateTimeFormat('pr-BR', {
+                day: '2-digit',
+                month: '2-digit',
+                year: '2-digit',
+            }).format(new Date())
         }
 
         try {
